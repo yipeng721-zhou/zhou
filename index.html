@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>高德扫街榜 · 销售培训系统</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#30363d;
+  --card:#161b22;--card2:#1c2128;
+  --b:rgba(255,255,255,0.07);--b2:rgba(255,255,255,0.13);--b3:rgba(255,255,255,0.2);
+  --t:#e6edf3;--t2:#8b949e;--t3:#484f58;
+  --blue:#58a6ff;--blue-bg:rgba(88,166,255,0.1);--blue-b:rgba(88,166,255,0.25);
+  --green:#3fb950;--green-bg:rgba(63,185,80,0.1);--green-b:rgba(63,185,80,0.25);
+  --amber:#d29922;--amber-bg:rgba(210,153,34,0.1);--amber-b:rgba(210,153,34,0.25);
+  --red:#f85149;--red-bg:rgba(248,81,73,0.1);--red-b:rgba(248,81,73,0.25);
+  --purple:#bc8cff;--purple-bg:rgba(188,140,255,0.1);
+  --r:10px;
+}
+body{background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',sans-serif;padding:20px}
+.outer{background:var(--bg2);border-radius:16px;padding:10px;border:0.5px solid var(--b2);width:100%;max-width:390px}
+.phone{background:var(--bg);border-radius:26px;border:0.5px solid var(--b2);overflow:hidden;display:flex;flex-direction:column;height:760px}
+
+/* bars */
+.sbar{background:#000;padding:12px 20px 8px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.sbar span{color:#fff;font-size:11px;font-weight:500}
+.nbar{background:#000;padding:8px 14px 12px;display:flex;align-items:center;flex-shrink:0}
+.nbk{color:var(--blue);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:2px;min-width:50px}
+.ntitle{color:#fff;font-size:14px;font-weight:600;flex:1;text-align:center}
+.nright{min-width:50px;text-align:right}
+
+/* body */
+.body{flex:1;overflow-y:auto;background:var(--bg)}
+.body::-webkit-scrollbar{width:3px}
+.body::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+.scr{display:none}
+.scr.on{display:block}
+
+/* hero */
+.hero{background:#000;padding:18px 16px 22px}
+.hbadge{display:inline-flex;align-items:center;gap:5px;background:var(--blue-bg);border:0.5px solid var(--blue-b);border-radius:20px;padding:4px 10px;margin-bottom:12px}
+.hbadge span{color:var(--blue);font-size:11px}
+.hero h1{color:#fff;font-size:20px;font-weight:700;margin-bottom:5px;letter-spacing:-0.3px}
+.hero p{color:rgba(255,255,255,0.45);font-size:12px;line-height:1.6}
+
+/* progress */
+.psec{padding:12px 16px;border-bottom:0.5px solid var(--b);flex-shrink:0}
+.ph{display:flex;justify-content:space-between;margin-bottom:7px}
+.ph span{font-size:11px;color:var(--t2)}
+.ph strong{font-size:11px;color:var(--blue)}
+.pbar{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.pfill{height:100%;border-radius:2px;transition:width .5s ease}
+
+/* day cards */
+.msec{padding:12px 16px 0}
+.sec-label{font-size:10px;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
+.dcard{background:var(--card);border:0.5px solid var(--b);border-radius:12px;padding:12px 13px;margin-bottom:7px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s,background .15s}
+.dcard:active{background:var(--card2)}
+.dcard.cur{border-color:var(--blue)}
+.dcard.locked{opacity:.5;cursor:default}
+.dcard.done{border-color:var(--green-b)}
+.dico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.di-g{background:var(--green-bg)} .di-b{background:var(--blue-bg)} .di-y{background:var(--amber-bg)} .di-p{background:var(--purple-bg)} .di-r{background:var(--red-bg)}
+.dinf{flex:1;min-width:0}
+.dname{font-size:13px;font-weight:500;color:var(--t);margin-bottom:1px}
+.ddesc{font-size:11px;color:var(--t2)}
+.dmeta{display:flex;align-items:center;gap:5px;margin-top:3px}
+.dtime{font-size:10px;color:var(--t3)}
+.tag{font-size:10px;padding:2px 7px;border-radius:5px;font-weight:500;white-space:nowrap;border:0.5px solid transparent}
+.tag-todo{background:var(--bg3);color:var(--t3);border-color:var(--b2)}
+.tag-cur{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-b)}
+.tag-done{background:var(--green-bg);color:var(--green);border-color:var(--green-b)}
+.tag-lock{background:var(--bg3);color:var(--t3);border-color:var(--b)}
+
+/* cert */
+.ccard{background:#000;border-radius:12px;padding:14px;margin:10px 16px 16px;display:flex;align-items:center;gap:10px;border:0.5px solid var(--b2)}
+.cico{width:40px;height:40px;background:var(--amber-bg);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.cinf h3{color:#fff;font-size:13px;font-weight:600;margin-bottom:2px}
+.cinf p{color:rgba(255,255,255,.35);font-size:10px}
+
+/* section header */
+.shead{display:flex;align-items:center;gap:9px;padding:14px 16px 12px;border-bottom:0.5px solid var(--b)}
+.shead-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.shead-title{font-size:14px;font-weight:600;color:var(--t)}
+.shead-sub{font-size:11px;color:var(--t2)}
+
+/* pad */
+.pad{padding:14px 16px}
+
+/* bubbles */
+.bubble{background:var(--card2);border:0.5px solid var(--b);border-radius:12px;border-bottom-left-radius:3px;padding:11px 13px;margin-bottom:8px}
+.bubble p{font-size:12px;color:var(--t);line-height:1.65}
+.bubble p+p{margin-top:6px}
+.bubble strong{font-weight:500}
+.qtag{display:inline-block;background:var(--blue-bg);color:var(--blue);font-size:10px;padding:2px 7px;border-radius:5px;margin-bottom:6px;font-weight:500;border:0.5px solid var(--blue-b)}
+.gtag{display:inline-block;background:var(--green-bg);color:var(--green);font-size:10px;padding:2px 7px;border-radius:5px;margin-bottom:6px;font-weight:500;border:0.5px solid var(--green-b)}
+.rtag{display:inline-block;background:var(--red-bg);color:var(--red);font-size:10px;padding:2px 7px;border-radius:5px;margin-bottom:6px;font-weight:500;border:0.5px solid var(--red-b)}
+
+/* options */
+.opts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.opt{padding:7px 13px;border-radius:20px;font-size:12px;background:var(--card2);border:0.5px solid var(--b2);color:var(--t);cursor:pointer;font-family:inherit;transition:border-color .15s}
+.opt:active{border-color:var(--blue);color:var(--blue)}
+.opt:disabled{opacity:.4;cursor:default}
+.opt.full{width:100%;padding:11px;text-align:center;border-radius:10px}
+.opt.pri{background:var(--blue);border-color:var(--blue);color:#000;font-weight:500}
+.opt.pri:active{opacity:.85}
+
+/* step rows */
+.srow{background:var(--card2);border:0.5px solid var(--b);border-radius:10px;padding:11px 13px;margin-bottom:7px;display:flex;align-items:center;gap:9px;cursor:pointer;transition:border-color .15s}
+.srow:active{background:var(--bg3)}
+.srow.done{border-color:var(--green-b);cursor:pointer}
+.srow.cur{border-color:var(--blue)}
+.sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.srow-inf{flex:1;min-width:0}
+.srow-name{font-size:12px;font-weight:500;color:var(--t);margin-bottom:1px}
+.srow-desc{font-size:10px;color:var(--t2)}
+
+/* merchant options */
+.mopts{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
+.mopt{background:var(--card2);border:0.5px solid var(--b);border-radius:12px;padding:11px 13px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:border-color .15s}
+.mopt:active{border-color:var(--blue)}
+.mopt-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.mopt-name{font-size:12px;font-weight:500;color:var(--t);margin-bottom:1px}
+.mopt-desc{font-size:10px;color:var(--t2)}
+
+/* calling */
+.calling{background:#000;border-radius:12px;padding:20px 16px;margin-bottom:10px;text-align:center;border:0.5px solid var(--b2)}
+.cavt{width:58px;height:58px;background:#1c2128;border-radius:50%;margin:0 auto 11px;display:flex;align-items:center;justify-content:center;font-size:26px}
+.cname{color:#fff;font-size:15px;font-weight:600;margin-bottom:3px}
+.cstatus{color:rgba(255,255,255,.4);font-size:11px;margin-bottom:12px}
+.crep{background:rgba(255,255,255,.06);border-radius:10px;border-bottom-left-radius:3px;padding:10px 12px;text-align:left;margin-top:4px;display:none}
+.crep p{color:rgba(255,255,255,.82);font-size:12px;line-height:1.65}
+
+/* score */
+.scorecard{background:var(--card2);border:0.5px solid var(--b);border-radius:12px;padding:12px 13px;margin-bottom:8px}
+.sc-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:0.5px solid var(--b)}
+.sc-row:last-child{border-bottom:none}
+.sc-row span{font-size:11px;color:var(--t2)}
+.sc-row strong{font-size:12px}
+.bignum{font-size:38px;font-weight:700;color:var(--blue);text-align:center;padding:14px 0 8px}
+
+/* cert card big */
+.certcard{background:#000;border:0.5px solid var(--amber-b);border-radius:12px;padding:16px;margin-bottom:8px;text-align:center}
+.certcard h2{color:var(--amber);font-size:15px;font-weight:600;margin-bottom:8px}
+.certcard p{font-size:11px;color:rgba(255,255,255,.5);line-height:1.8}
+.certcard .cert-name{font-size:18px;font-weight:700;color:#fff;margin:8px 0}
+.cert-badge{display:inline-block;background:var(--amber-bg);border:0.5px solid var(--amber-b);color:var(--amber);font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px;margin-top:8px}
+
+/* note */
+.note{background:var(--blue-bg);border:0.5px solid var(--blue-b);border-radius:10px;padding:10px 12px;margin-bottom:9px}
+.note p{font-size:11px;color:var(--blue);line-height:1.6}
+.warn{background:var(--amber-bg);border:0.5px solid var(--amber-b);border-radius:10px;padding:10px 12px;margin-bottom:9px}
+.warn p{font-size:11px;color:var(--amber);line-height:1.6}
+
+/* endrow */
+.endrow{display:flex;gap:7px;margin-top:10px}
+.ebtn{flex:1;padding:10px;border-radius:10px;font-size:12px;font-family:inherit;cursor:pointer;border:0.5px solid var(--b2);background:var(--card2);color:var(--t);transition:background .15s}
+.ebtn:active{background:var(--bg3)}
+.ebtn.pri{background:var(--blue);border-color:var(--blue);color:#000;font-weight:500}
+.ebtn.pri:active{opacity:.85}
+
+/* iarea & tbar */
+.iarea{padding:8px 11px;border-top:0.5px solid var(--b);background:var(--card);display:flex;align-items:center;gap:7px;flex-shrink:0}
+.ibox{flex:1;background:var(--bg3);border:0.5px solid var(--b2);border-radius:20px;padding:7px 13px;font-size:12px;color:var(--t);font-family:inherit;outline:none}
+.ibox::placeholder{color:var(--t3)}
+.ibox:focus{border-color:var(--blue)}
+.sbtn{width:30px;height:30px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;border:none}
+.tbar{display:flex;padding:7px 0 12px;border-top:0.5px solid var(--b);background:var(--card);flex-shrink:0}
+.ti{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:2px 0}
+.ti i{font-size:19px;color:var(--t3)}
+.ti span{font-size:9px;color:var(--t3)}
+.ti.on i,.ti.on span{color:var(--blue)}
+
+/* day progress dots */
+.daydots{display:flex;gap:5px;margin-bottom:12px}
+.ddot{flex:1;height:3px;border-radius:2px;background:var(--bg3)}
+.ddot.done{background:var(--green)}
+.ddot.cur{background:var(--blue)}
+
+/* anomaly chips */
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{padding:6px 11px;border-radius:20px;font-size:11px;background:var(--card2);border:0.5px solid var(--b2);color:var(--t);cursor:pointer;font-family:inherit;transition:border-color .15s}
+.chip:active{border-color:var(--blue)}
+
+/* score bar */
+.sbar-row{margin-bottom:7px}
+.sbar-label{display:flex;justify-content:space-between;margin-bottom:3px}
+.sbar-label span{font-size:11px;color:var(--t2)}
+.sbar-label strong{font-size:11px}
+.sbar-track{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.sbar-fill{height:100%;border-radius:2px;transition:width .6s ease}
+
+@media(max-width:430px){
+  body{padding:0;align-items:flex-start}
+  .outer{border-radius:0;padding:0;border:none;max-width:100%}
+  .phone{border-radius:0;height:100vh}
+}
+</style>
+</head>
+<body>
+<div class="outer">
+<div class="phone">
+
+<div class="sbar">
+  <span>9:41</span>
+  <span><i class="ti ti-wifi" style="font-size:12px"></i>&nbsp;<i class="ti ti-battery" style="font-size:12px"></i></span>
+</div>
+<div class="nbar">
+  <span class="nbk" id="backBtn" onclick="goBack()" style="visibility:hidden">
+    <i class="ti ti-chevron-left" style="font-size:14px"></i>返回
+  </span>
+  <span class="ntitle" id="navTitle">培训中心</span>
+  <span class="nright"></span>
+</div>
+
+<div class="body" id="body">
+
+<!-- ========== HOME ========== -->
+<div id="s-home" class="scr on">
+  <div class="hero">
+    <div class="hbadge"><i class="ti ti-map-pin" style="font-size:11px;color:var(--blue)"></i><span>高德商业化 · 扫街榜</span></div>
+    <h1>销售培训系统</h1>
+    <p>5天培训路径，从基础知识到实战认证，完成即可上岗。</p>
+  </div>
+  <div class="psec">
+    <div class="ph"><span>整体进度</span><strong id="hprog-txt">Day 1 进行中</strong></div>
+    <div class="pbar"><div class="pfill" id="hprog-bar" style="width:10%;background:var(--blue)"></div></div>
+  </div>
+  <div class="msec">
+    <div class="sec-label">培训路径</div>
+
+    <div class="dcard cur" onclick="nav('s-day1','Day 1 · 基础知识')">
+      <div class="dico di-b"><i class="ti ti-book" style="color:var(--blue);font-size:17px"></i></div>
+      <div class="dinf">
+        <div class="dname">Day 1 · 基础知识</div>
+        <div class="ddesc">走进电销、数据安全、产品介绍、五步法</div>
+        <div class="dmeta"><span class="dtime"><i class="ti ti-clock" style="font-size:10px"></i> ~60分钟</span><span class="tag tag-cur">进行中</span></div>
+      </div>
+      <i class="ti ti-chevron-right" style="color:var(--t3);font-size:13px"></i>
+    </div>
+
+    <div class="dcard" onclick="nav('s-day2','Day 2 · 开场白陪练')">
+      <div class="dico di-g"><i class="ti ti-phone" style="color:var(--green);font-size:17px"></i></div>
+      <div class="dinf">
+        <div class="dname">Day 2 · 开场白陪练</div>
+        <div class="ddesc">AI扮演商家，实战演练开场白话术</div>
+        <div class="dmeta"><span class="dtime"><i class="ti ti-clock" style="font-size:10px"></i> ~40分钟</span><span class="tag tag-todo">待开始</span></div>
+      </div>
+      <i class="ti ti-chevron-right" style="color:var(--t3);font-size:13px"></i>
+    </div>
+
+    <div class="dcard" onclick="nav('s-day3','Day 3 · 产品介绍陪练')">
+      <div class="dico di-y"><i class="ti ti-message-dots" style="color:var(--amber);font-size:17px"></i></div>
+      <div class="dinf">
+        <div class="dname">Day 3 · 产品介绍陪练</div>
+        <div class="ddesc">CPC模型讲解、价值传递演练</div>
+        <div class="dmeta"><span class="dtime"><i class="ti ti-clock" style="font-size:10px"></i> ~50分钟</span><span class="tag tag-todo">待开始</span></div>
+      </div>
+      <i class="ti ti-chevron-right" style="color:var(--t3);font-size:13px"></i>
+    </div>
+
+    <div class="dcard" onclick="nav('s-day4','Day 4 · 异议处理陪练')">
+      <div class="dico di-r"><i class="ti ti-shield-check" style="color:var(--red);font-size:17px"></i></div>
+      <div class="dinf">
+        <div class="dname">Day 4 · 异议处理陪练</div>
+        <div class="ddesc">8大真实异议场景，随机出题</div>
+        <div class="dmeta"><span class="dtime"><i class="ti ti-clock" style="font-size:10px"></i> ~60分钟</span><span class="tag tag-todo">待开始</span></div>
+      </div>
+      <i class="ti ti-chevron-right" style="color:var(--t3);font-size:13px"></i>
+    </div>
+
+    <div class="dcard" onclick="nav('s-day5','Day 5 · 综合认证')">
+      <div class="dico di-p"><i class="ti ti-award" style="color:var(--purple);font-size:17px"></i></div>
+      <div class="dinf">
+        <div class="dname">Day 5 · 综合认证考核</div>
+        <div class="ddesc">全流程考核，85分以上颁发证书</div>
+        <div class="dmeta"><span class="dtime"><i class="ti ti-clock" style="font-size:10px"></i> ~90分钟</span><span class="tag tag-todo">待开始</span></div>
+      </div>
+      <i class="ti ti-chevron-right" style="color:var(--t3);font-size:13px"></i>
+    </div>
+  </div>
+
+  <div class="ccard">
+    <div class="cico">🏅</div>
+    <div class="cinf"><h3>上岗认证证书</h3><p>完成5天培训 · Day5综合认证85分以上解锁</p></div>
+    <i class="ti ti-lock" style="color:rgba(255,255,255,.18);font-size:16px;margin-left:auto"></i>
+  </div>
+</div>
+
+<!-- ========== DAY 1 ========== -->
+<div id="s-day1" class="scr">
+  <div class="shead">
+    <div class="shead-ico di-b"><i class="ti ti-book" style="color:var(--blue);font-size:17px"></i></div>
+    <div><div class="shead-title">Day 1 · 基础知识</div><div class="shead-sub">4个学习模块 · 约60分钟</div></div>
+  </div>
+  <div class="pad">
+    <div class="daydots"><div class="ddot done"></div><div class="ddot cur"></div><div class="ddot"></div><div class="ddot"></div></div>
+    <div class="note"><p>按顺序完成模块，通过小测验后解锁下一个。</p></div>
+
+    <div class="srow done" onclick="nav('s-m1done','模块① · 走进电销')">
+      <div class="sdot" style="background:var(--green)"></div>
+      <div class="srow-inf"><div class="srow-name">模块① 走进电销</div><div class="srow-desc">心态建设、目标认知、被拒绝心法</div></div>
+      <span class="tag tag-done">5/5 ✓</span>
+    </div>
+    <div class="srow cur" onclick="nav('s-m2','模块② · 数据安全')">
+      <div class="sdot" style="background:var(--blue)"></div>
+      <div class="srow-inf"><div class="srow-name">模块② 数据安全</div><div class="srow-desc">合规红线、违规后果</div></div>
+      <span class="tag tag-cur">进行中</span>
+    </div>
+    <div class="srow">
+      <div class="sdot" style="background:var(--bg4)"></div>
+      <div class="srow-inf"><div class="srow-name">模块③ 扫街榜产品</div><div class="srow-desc">产品逻辑、商家核心价值、CPC</div></div>
+      <span class="tag tag-lock">待解锁</span>
+    </div>
+    <div class="srow" style="margin-bottom:0">
+      <div class="sdot" style="background:var(--bg4)"></div>
+      <div class="srow-inf"><div class="srow-name">模块④ 销售五步法</div><div class="srow-desc">开场白到逼单全流程概览</div></div>
+      <span class="tag tag-lock">待解锁</span>
+    </div>
+    <button class="opt full" style="margin-top:12px" onclick="nav('s-m2','模块② · 数据安全')">继续学习模块② <i class="ti ti-arrow-right" style="font-size:11px;vertical-align:-1px"></i></button>
+  </div>
+</div>
+
+<!-- M1 DONE -->
+<div id="s-m1done" class="scr">
+  <div class="pad">
+    <div class="bubble"><span class="gtag">已完成</span><p><strong>模块① 走进电销</strong> 认证通过</p><p style="margin-top:6px;color:var(--t2)">掌握要点：电销本质、心态建设、被拒绝是行业规律</p></div>
+    <div style="background:var(--card2);border:0.5px solid var(--green-b);border-radius:12px;padding:14px;margin-bottom:8px;text-align:center">
+      <div style="font-size:10px;color:var(--t2);margin-bottom:5px">测验得分</div>
+      <div style="font-size:32px;font-weight:700;color:var(--green)">5 / 5</div>
+      <div style="font-size:10px;color:var(--t2);margin-top:3px">全对 · 优秀</div>
+    </div>
+    <button class="opt full" onclick="nav('s-day1','Day 1 · 基础知识')"><i class="ti ti-arrow-left" style="font-size:11px;vertical-align:-1px"></i> 返回模块列表</button>
+  </div>
+</div>
+
+<!-- M2 数据安全 -->
+<div id="s-m2" class="scr">
+  <div class="pad">
+    <div class="bubble"><p>进入<strong>模块②：数据安全</strong>。以下是三条红线，必须100%掌握。</p></div>
+    <div class="bubble">
+      <p><strong>三条核心规定：</strong></p>
+      <p style="margin-top:7px">① 客户信息严禁截图或外传，包括电话号码、商家名称、联系人</p>
+      <p style="margin-top:5px">② 通话录音仅限内部质检，不得发给任何外部人员</p>
+      <p style="margin-top:5px">③ 违规后果：<span style="color:var(--red);font-weight:500">直接开除</span>，情节严重移交法务</p>
+    </div>
+    <div class="bubble"><span class="qtag">判断题 1/2</span><p>打完电话，把客户电话号码发朋友说「这家餐厅不错」，违规吗？</p></div>
+    <div class="opts" id="m2q1opts">
+      <button class="opt" onclick="ansQ('m2q1','违规',true)">违规</button>
+      <button class="opt" onclick="ansQ('m2q1','不违规',false)">不违规</button>
+    </div>
+    <div id="m2q1fb" style="display:none" class="bubble"></div>
+    <div id="m2q2wrap" style="display:none">
+      <div class="bubble"><span class="qtag">判断题 2/2</span><p>把通话录音发给同学让他帮分析，违规吗？</p></div>
+      <div class="opts" id="m2q2opts">
+        <button class="opt" onclick="ansQ('m2q2','违规',true)">违规</button>
+        <button class="opt" onclick="ansQ('m2q2','不违规',false)">不违规</button>
+      </div>
+      <div id="m2q2fb" style="display:none" class="bubble"></div>
+    </div>
+    <div id="m2next" style="display:none">
+      <button class="opt full pri" onclick="nav('s-day1','Day 1 · 基础知识')">通过！返回模块列表</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== DAY 2 ========== -->
+<div id="s-day2" class="scr">
+  <div class="shead">
+    <div class="shead-ico di-g"><i class="ti ti-phone" style="color:var(--green);font-size:17px"></i></div>
+    <div><div class="shead-title">Day 2 · 开场白陪练</div><div class="shead-sub">AI扮演商家 · 只练开场白 · ~40分钟</div></div>
+  </div>
+  <div class="pad">
+    <div class="daydots"><div class="ddot done"></div><div class="ddot done"></div><div class="ddot cur"></div><div class="ddot"></div></div>
+    <div class="note"><p>场景：你主动拨出电话，商家刚接起来。练完开场白发「结束」进入复盘评分。</p></div>
+    <div style="font-size:10px;color:var(--t3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">选择商家类型</div>
+    <div class="mopts">
+      <div class="mopt" onclick="startCall(2,'王老板','👨‍🍳','冷漠拒绝型')">
+        <div class="mopt-ico" style="background:var(--red-bg)"><i class="ti ti-mood-confuzed" style="color:var(--red);font-size:15px"></i></div>
+        <div><div class="mopt-name">冷漠拒绝型 — 王老板</div><div class="mopt-desc">随时可能挂电话，考验黄金30秒</div></div>
+        <i class="ti ti-chevron-right" style="color:var(--t3);font-size:12px;margin-left:auto"></i>
+      </div>
+      <div class="mopt" onclick="startCall(2,'陈姐','👩‍💼','疑虑质询型')">
+        <div class="mopt-ico" style="background:var(--amber-bg)"><i class="ti ti-help" style="color:var(--amber);font-size:15px"></i></div>
+        <div><div class="mopt-name">疑虑质询型 — 陈姐</div><div class="mopt-desc">爱追问，考验产品解释能力</div></div>
+        <i class="ti ti-chevron-right" style="color:var(--t3);font-size:12px;margin-left:auto"></i>
+      </div>
+      <div class="mopt" onclick="startCall(2,'刘总','👨‍💼','敷衍应付型')">
+        <div class="mopt-ico" style="background:var(--blue-bg)"><i class="ti ti-mood-empty" style="color:var(--blue);font-size:15px"></i></div>
+        <div><div class="mopt-name">敷衍应付型 — 刘总</div><div class="mopt-desc">习惯用「发材料」打发，最高频</div></div>
+        <i class="ti ti-chevron-right" style="color:var(--t3);font-size:12px;margin-left:auto"></i>
+      </div>
+    </div>
+    <div class="warn"><p>三种商家对应不同挑战，建议都练一遍后再进入Day3。</p></div>
+  </div>
+</div>
+
+<!-- ========== DAY 3 ========== -->
+<div id="s-day3" class="scr">
+  <div class="shead">
+    <div class="shead-ico di-y"><i class="ti ti-message-dots" style="color:var(--amber);font-size:17px"></i></div>
+    <div><div class="shead-title">Day 3 · 产品介绍陪练</div><div class="shead-sub">CPC模型 · 开场白已完成 · ~50分钟</div></div>
+  </div>
+  <div class="pad">
+    <div class="daydots"><div class="ddot done"></div><div class="ddot done"></div><div class="ddot done"></div><div class="ddot cur"></div></div>
+    <div class="note"><p>场景：开场白已成功，商家说「好，你说吧」。现在练习产品介绍，重点是把CPC计费模型说清楚。</p></div>
+    <div class="bubble">
+      <p><strong>Day3 核心考点：CPC模型</strong></p>
+      <p style="margin-top:7px">正确说法：「用户看到您的店但没点击 = 免费曝光；用户点击进来 = 才产生费用」</p>
+      <p style="margin-top:5px;color:var(--red)">错误说法：「完全免费，不花任何钱」→ 会被商家追问「你们靠什么赚钱」</p>
+    </div>
+    <div style="font-size:10px;color:var(--t3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">选择商家类型</div>
+    <div class="mopts">
+      <div class="mopt" onclick="startCall(3,'王老板','👨‍🍳','冷漠拒绝型')">
+        <div class="mopt-ico" style="background:var(--red-bg)"><i class="ti ti-mood-confuzed" style="color:var(--red);font-size:15px"></i></div>
+        <div><div class="mopt-name">冷漠拒绝型 — 王老板</div><div class="mopt-desc">没耐心，30秒内要说完核心价值</div></div>
+        <i class="ti ti-chevron-right" style="color:var(--t3);font-size:12px;margin-left:auto"></i>
+      </div>
+      <div class="mopt" onclick="startCall(3,'陈姐','👩‍💼','疑虑质询型')">
+        <div class="mopt-ico" style="background:var(--amber-bg)"><i class="ti ti-help" style="color:var(--amber);font-size:15px"></i></div>
+        <div><div class="mopt-name">疑虑质询型 — 陈姐</div><div class="mopt-desc">追问CPC细节，考验知识掌握度</div></div>
+        <i class="ti ti-chevron-right" style="color:var(--t3);font-size:12px;margin-left:auto"></i>
+      </div>
+      <div class="mopt" onclick="startCall(3,'刘总','👨‍💼','敷衍应付型')">
+        <div class="mopt-ico" style="background:var(--blue-bg)"><i class="ti ti-mood-empty" style="color:var(--blue);font-size:15px"></i></div>
+        <div><div class="mopt-name">敷衍应付型 — 刘总</div><div class="mopt-desc">心不在焉，要让他真正听进去</div></div>
+        <i class="ti ti-chevron-right" style="color:var(--t3);font-size:12px;margin-left:auto"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== DAY 4 ========== -->
+<div id="s-day4" class="scr">
+  <div class="shead">
+    <div class="shead-ico di-r"><i class="ti ti-shield-check" style="color:var(--red);font-size:17px"></i></div>
+    <div><div class="shead-title">Day 4 · 异议处理陪练</div><div class="shead-sub">随机抽取异议 · 练到化解为止</div></div>
+  </div>
+  <div class="pad">
+    <div class="daydots"><div class="ddot done"></div><div class="ddot done"></div><div class="ddot done"></div><div class="ddot done"></div></div>
+    <div class="note"><p>场景：开场白和产品介绍完成后，商家突然提出异议。随机抽取，考验临场应变。</p></div>
+    <div style="font-size:10px;color:var(--t3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">选择练习方式</div>
+    <div class="mopts">
+      <div class="mopt" onclick="startD4('random')">
+        <div class="mopt-ico" style="background:var(--purple-bg)"><i class="ti ti-dice" style="color:var(--purple);font-size:15px"></i></div>
+        <div><div class="mopt-name">随机抽取异议</div><div class="mopt-desc">系统随机分配，模拟真实场景</div></div>
+        <i class="ti ti-chevron-right" style="color:var(--t3);font-size:12px;margin-left:auto"></i>
+      </div>
+      <div class="mopt" onclick="showD4List()">
+        <div class="mopt-ico" style="background:var(--blue-bg)"><i class="ti ti-list" style="color:var(--blue);font-size:15px"></i></div>
+        <div><div class="mopt-name">选择指定异议</div><div class="mopt-desc">针对薄弱环节专项训练</div></div>
+        <i class="ti ti-chevron-right" style="color:var(--t3);font-size:12px;margin-left:auto"></i>
+      </div>
+    </div>
+    <div id="d4list" style="display:none">
+      <div class="chips">
+        <button class="chip" onclick="startD4('没时间')">没时间</button>
+        <button class="chip" onclick="startD4('不感兴趣')">不感兴趣</button>
+        <button class="chip" onclick="startD4('免费没用')">免费没用</button>
+        <button class="chip" onclick="startD4('已在美团')">已在美团</button>
+        <button class="chip" onclick="startD4('效果保证')">效果保证</button>
+        <button class="chip" onclick="startD4('操作麻烦')">操作麻烦</button>
+        <button class="chip" onclick="startD4('要商量')">要商量</button>
+        <button class="chip" onclick="startD4('发材料')">发材料 ⚠️</button>
+      </div>
+      <div class="warn"><p>「发材料」是最高频陷阱，商家表面同意实则打发，是Day4最难的场景。</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== DAY 5 ========== -->
+<div id="s-day5" class="scr">
+  <div class="shead">
+    <div class="shead-ico di-p"><i class="ti ti-award" style="color:var(--purple);font-size:17px"></i></div>
+    <div><div class="shead-title">Day 5 · 综合认证考核</div><div class="shead-sub">全流程 · 85分以上颁发证书 · ~90分钟</div></div>
+  </div>
+  <div class="pad">
+    <div class="daydots"><div class="ddot done"></div><div class="ddot done"></div><div class="ddot done"></div><div class="ddot done"></div></div>
+    <div class="warn"><p>⚠️ 综合认证：全程无提示，商家类型和异议随机，只有一次机会。85分以上颁发上岗证书。</p></div>
+    <div class="bubble">
+      <p><strong>考核内容</strong></p>
+      <p style="margin-top:7px">完整走一遍五步法：开场白 → 需求挖掘 → 产品介绍 → 异议处理 → 逼单</p>
+      <p style="margin-top:5px">系统自动评分，给出全流程复盘和上岗建议。</p>
+    </div>
+    <div class="bubble">
+      <p style="color:var(--t2);font-size:11px"><strong style="color:var(--t)">认证等级</strong></p>
+      <p style="margin-top:6px;font-size:11px;color:var(--t2)">85-89分 · 合格 &nbsp;&nbsp; 90-94分 · 良好 &nbsp;&nbsp; 95-100分 · 优秀</p>
+    </div>
+    <button class="opt full pri" style="margin-top:4px" onclick="startD5()">开始综合认证 <i class="ti ti-arrow-right" style="font-size:11px;vertical-align:-1px"></i></button>
+  </div>
+</div>
+
+<!-- ========== CALL SCREEN ========== -->
+<div id="s-call" class="scr">
+  <div class="pad">
+    <div class="calling">
+      <div class="cavt" id="callAvt">👨‍🍳</div>
+      <div class="cname" id="callName">王老板</div>
+      <div class="cstatus" id="callStatus">📞 电话已接通，等待你开口…</div>
+      <div class="crep" id="callRep"><p id="callRepTxt"></p></div>
+    </div>
+    <div class="bubble" id="callHint"><p style="color:var(--t2)">点击下方体验不同话术效果，或直接点「结束复盘」</p></div>
+    <div class="opts" id="callOpts">
+      <button class="opt" onclick="tryTalk(1)">用标准话术</button>
+      <button class="opt" onclick="tryTalk(2)">用差劲话术</button>
+      <button class="opt" onclick="tryTalk(3)">追问反应</button>
+    </div>
+    <div class="endrow">
+      <button class="ebtn" id="callBack" onclick="goBack()">重新选择</button>
+      <button class="ebtn pri" onclick="goScoreScreen()">结束复盘</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCORE SCREEN ========== -->
+<div id="s-score" class="scr">
+  <div class="pad">
+    <div class="bubble"><span class="qtag" id="scoreDayTag">Day 2 · 开场白复盘</span><p id="scoreSceneTxt">冷漠拒绝型 · 王老板</p></div>
+    <div class="bignum" id="scoreBigNum">82</div>
+    <div style="text-align:center;margin-top:-6px;margin-bottom:14px;font-size:12px" id="scoreLevelTxt" style="color:var(--amber)">良好 · 建议再练1次</div>
+
+    <div class="scorecard" id="scoreDetail"></div>
+
+    <div class="bubble" id="scoreFeedback"></div>
+
+    <div id="scoreCertWrap" style="display:none" class="certcard">
+      <div style="font-size:28px;margin-bottom:8px">🏅</div>
+      <h2>上岗认证通过</h2>
+      <div class="cert-name">本次学员</div>
+      <p>高德扫街榜电话销售五步法<br>综合认证考核</p>
+      <span class="cert-badge" id="certLevel">优秀</span>
+      <p style="margin-top:10px;font-size:10px">— 高德地图商业化培训中心 —</p>
+    </div>
+
+    <div class="endrow">
+      <button class="ebtn" onclick="retryDay()">再练一次</button>
+      <button class="ebtn pri" onclick="nav('s-home','培训中心')">返回首页</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== D4 CALL ========== -->
+<div id="s-d4call" class="scr">
+  <div class="pad">
+    <div class="calling">
+      <div class="cavt">🎯</div>
+      <div class="cname" id="d4name">异议场景</div>
+      <div class="cstatus" id="d4status">商家正在抛出异议…</div>
+      <div class="crep" id="d4rep" style="display:block"><p id="d4reptxt"></p></div>
+    </div>
+    <div class="note" id="d4hint"><p id="d4hintTxt">输入你的化解话术，或点击下方测试</p></div>
+    <div class="opts">
+      <button class="opt" onclick="tryD4(1)">用正确话术</button>
+      <button class="opt" onclick="tryD4(2)">用错误话术</button>
+    </div>
+    <div class="endrow">
+      <button class="ebtn" onclick="goBack()">重新选择</button>
+      <button class="ebtn pri" onclick="goD4Score()">结束复盘</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /body -->
+
+<div class="iarea">
+  <input class="ibox" type="text" placeholder="输入问题随时提问…" aria-label="输入消息">
+  <button class="sbtn" aria-label="发送"><i class="ti ti-arrow-up" style="font-size:13px;color:#000"></i></button>
+</div>
+<div class="tbar">
+  <div class="ti on" id="tab-learn" onclick="switchTab('learn')"><i class="ti ti-book"></i><span>学习</span></div>
+  <div class="ti" id="tab-drill" onclick="switchTab('drill')"><i class="ti ti-microphone"></i><span>陪练</span></div>
+  <div class="ti" id="tab-check" onclick="switchTab('check')"><i class="ti ti-checklist"></i><span>质检</span></div>
+  <div class="ti" id="tab-me" onclick="switchTab('me')"><i class="ti ti-user"></i><span>我的</span></div>
+</div>
+
+</div><!-- /phone -->
+</div><!-- /outer -->
+
+<script>
+var _hist=[], _curDay=2, _curMerchant='王老板', _curType=1, _scriptUsed=1;
+var _d4type='random', _d4used=1;
+
+var D2_DATA={
+  '王老板':{avt:'👨‍🍳',good:'哦？高德地图……（锅铲声停了一下）你说，什么活动？',bad:'我很忙，不感兴趣，谢谢。（准备挂断）',retry:'你刚才说免费？那具体怎么免费法？'},
+  '陈姐':{avt:'👩‍💼',good:'好，那你说说，这个活动具体怎么参与？和美团有什么区别？',bad:'什么意思？我没太听懂，你说的到底是什么？',retry:'你说符合条件，什么条件？我们店有什么特别的吗？'},
+  '刘总':{avt:'👨‍💼',good:'嗯嗯，你先把材料发我微信，我有空看看。',bad:'好好好，你发过来吧。（语气明显敷衍）',retry:'这个免费参与，那你们高德靠什么赚钱？'}
+};
+var D3_DATA={
+  '王老板':{avt:'👨‍🍳',good:'那就是说点了才收费，没点不花钱？这倒还行，那参与的话要怎么弄？',bad:'我听不懂你说什么，你说简单点，到底怎么收费？',retry:'你说日活1亿，那能给我带多少客流？'},
+  '陈姐':{avt:'👩‍💼',good:'CPC就是按点击付费？那如果没人点进来，是不是一分钱不用花？',bad:'完全免费？那你们高德靠什么赚钱？',retry:'你说不影响美团渠道，那这两个的用户有什么不一样？'},
+  '刘总':{avt:'👨‍💼',good:'这样的话风险倒是不高，那具体怎么操作？',bad:'好好好，你发材料过来，我看看再说。',retry:'效果好的话，一个点击大概多少钱？'}
+};
+var D4_DATA={
+  'random':['没时间','不感兴趣','免费没用','已在美团','效果保证','操作麻烦','要商量','发材料'],
+  '没时间':{name:'「我现在很忙」',avt:'🍲',good:'哦，那行，你把材料发我微信吧，我晚点看。',bad:'我说了我很忙，你还在说，这个真的不需要，谢谢。',hint:'化解关键：降低时间成本，把决策缩小到「发材料」这一步'},
+  '不感兴趣':{name:'「不感兴趣，谢谢」',avt:'🍜',good:'免费的？那你说说是什么活动？',bad:'我已经说不感兴趣了，不需要，再见。',hint:'化解关键：先重申免费，打破收费推销预设'},
+  '免费没用':{name:'「免费的肯定没用」',avt:'🥘',good:'你这么说……那高德为什么要给我们出推广费？',bad:'没用就算了，不占用你时间了。',hint:'化解关键：解释平台补贴逻辑——高德花钱买餐饮内容'},
+  '已在美团':{name:'「我们已经在美团做了」',avt:'🍱',good:'那你说说，高德和美团的用户有什么不同？',bad:'美团就够了，不需要再做别的。',hint:'化解关键：强调用户群不重叠，是增量不是替代'},
+  '效果保证':{name:'「能保证多少客流吗？」',avt:'🍣',good:'你说CPC模式，那如果没人点进来真的不花钱？那倒可以试试。',bad:'你说不了具体数字，那我怎么知道有没有效果？',hint:'化解关键：不承诺数字，但强调CPC的零风险逻辑'},
+  '操作麻烦':{name:'「太麻烦了，我不会弄」',avt:'🥗',good:'哦，你们来帮我弄？那也行，那需要我提供什么？',bad:'我这边人手不够，实在搞不来这些。',hint:'化解关键：极度简化，强调「我们来帮您做，您只需确认信息」'},
+  '要商量':{name:'「我要跟老板商量一下」',avt:'🍔',good:'行，你把材料发我，我转给老板看。你留个联系方式吧。',bad:'那你商量好了再说吧，我等你消息。',hint:'化解关键：不强推，但要推进材料到达决策者'},
+  '发材料':{name:'「发材料吧，我看看」⚠️',avt:'📱',good:'好，那我明天上午给你回个电话，你看几点方便？',bad:'好的，我发给你。（然后结束通话）',hint:'⚠️ 陷阱：发材料≠成功！必须同时约定回访时间，否则石沉大海'}
+};
+var D5_SCENARIOS=[
+  {type:'冷漠型',name:'王老板',avt:'👨‍🍳',anomaly:'不感兴趣',diff:'普通',score:88,level:'良好'},
+  {type:'质询型',name:'陈姐',avt:'👩‍💼',anomaly:'效果保证',diff:'困难',score:72,level:'合格'},
+  {type:'敷衍型',name:'刘总',avt:'👨‍💼',anomaly:'发材料',diff:'地狱',score:91,level:'优秀'}
+];
+var _d5scenario=null;
+
+function show(id){document.querySelectorAll('.scr').forEach(function(s){s.classList.remove('on')});var el=document.getElementById(id);if(el)el.classList.add('on');document.getElementById('body').scrollTop=0}
+function nav(id,title){_hist.push({id:document.querySelector('.scr.on').id,title:document.getElementById('navTitle').textContent});show(id);document.getElementById('navTitle').textContent=title;document.getElementById('backBtn').style.visibility='visible'}
+function goBack(){if(_hist.length===0)return;var p=_hist.pop();show(p.id);document.getElementById('navTitle').textContent=p.title;if(_hist.length===0)document.getElementById('backBtn').style.visibility='hidden'}
+function switchTab(t){document.querySelectorAll('.ti').forEach(function(e){e.classList.remove('on')});document.getElementById('tab-'+t).classList.add('on');_hist=[];document.getElementById('backBtn').style.visibility='hidden';if(t==='learn'){show('s-home');document.getElementById('navTitle').textContent='培训中心'}else if(t==='drill'){show('s-day2');document.getElementById('navTitle').textContent='Day 2 · 开场白陪练'}else{show('s-home');document.getElementById('navTitle').textContent='培训中心'}}
+
+function ansQ(id,ans,correct){
+  var opts=document.querySelectorAll('#'+id+'opts .opt');
+  opts.forEach(function(b){b.disabled=true});
+  var fb=document.getElementById(id+'fb');
+  fb.style.display='block';
+  if(correct){
+    fb.innerHTML='<p>✅ <strong>正确！</strong>违规。'+(id==='m2q1'?'客户信息受保护，即便好意也属违规，可被直接开除。':'录音属于受保护信息，发给任何外部人员都违规。')+'</p>';
+    fb.style.borderColor='var(--green-b)';
+  }else{
+    fb.innerHTML='<p>❌ 答错了。这是违规行为，任何情况下外传客户信息都不被允许。</p>';
+    fb.style.borderColor='var(--red-b)';
+  }
+  if(id==='m2q1'){setTimeout(function(){document.getElementById('m2q2wrap').style.display='block'},350)}
+  else{setTimeout(function(){document.getElementById('m2next').style.display='block'},350)}
+}
+
+function startCall(day,name,avt,type){
+  _curDay=day;_curMerchant=name;_scriptUsed=0;
+  document.getElementById('callAvt').textContent=avt;
+  document.getElementById('callName').textContent=name;
+  document.getElementById('callStatus').textContent='📞 电话已接通，等待你开口…';
+  document.getElementById('callRep').style.display='none';
+  document.getElementById('callRep').children[0].textContent='';
+  document.getElementById('callHint').style.display='block';
+  document.getElementById('callBack').onclick=goBack;
+  nav('s-call','陪练中 · '+name);
+}
+
+function tryTalk(q){
+  _scriptUsed=q;
+  var data=_curDay===2?D2_DATA[_curMerchant]:D3_DATA[_curMerchant];
+  if(!data)return;
+  var rep=q===1?data.good:q===2?data.bad:data.retry;
+  var rep_el=document.getElementById('callRep');
+  rep_el.style.display='block';
+  document.getElementById('callRepTxt').textContent=rep;
+  document.getElementById('callStatus').textContent=q===1?'💬 '+_curMerchant+' 有反应…':q===2?'😐 '+_curMerchant+' 没什么兴趣…':'🔄 '+_curMerchant+' 继续追问…';
+  document.getElementById('callHint').style.display='none';
+}
+
+function goScoreScreen(){
+  var score,level,lcolor,detail,feedback;
+  var dayLabel=_curDay===2?'Day 2 · 开场白复盘':'Day 3 · 产品介绍复盘';
+  document.getElementById('scoreDayTag').textContent=dayLabel;
+  document.getElementById('scoreSceneTxt').textContent=_curMerchant+' · '+(_curDay===2?'开场白陪练':'产品介绍陪练');
+  document.getElementById('scoreCertWrap').style.display='none';
+  if(_scriptUsed===1){score=84;level='良好 · 建议再练1次';lcolor='var(--amber)'}
+  else if(_scriptUsed===2){score=43;level='需要继续练习';lcolor='var(--red)'}
+  else{score=67;level='接近及格，再练1次';lcolor='var(--amber)'}
+  document.getElementById('scoreBigNum').textContent=score;
+  document.getElementById('scoreLevelTxt').textContent=level;
+  document.getElementById('scoreLevelTxt').style.color=lcolor;
+  if(_curDay===2){
+    document.getElementById('scoreDetail').innerHTML=makeScoreRows([
+      {label:'① 身份介绍清晰',max:20,v:_scriptUsed===1?18:_scriptUsed===2?8:16},
+      {label:'② 打扰铺垫到位',max:10,v:_scriptUsed===1?9:_scriptUsed===2?2:7},
+      {label:'③ 核心价值前置',max:25,v:_scriptUsed===1?20:_scriptUsed===2?8:15},
+      {label:'④ 稀缺感/被选中感',max:20,v:_scriptUsed===1?15:_scriptUsed===2?6:12},
+      {label:'⑤ 时间承诺给出',max:15,v:_scriptUsed===1?12:_scriptUsed===2?5:10},
+      {label:'整体流畅度',max:10,v:_scriptUsed===1?10:_scriptUsed===2?14:7}
+    ]);
+    document.getElementById('scoreFeedback').innerHTML=_scriptUsed===1?'<p><strong>亮点：</strong>身份介绍清晰，开头节奏稳。</p><p style="margin-top:7px"><strong>改进：</strong>「免费曝光」出现太晚，建议第2句就抛出。</p>':'<p><strong>主要问题：</strong>没有在前15秒说出「免费」，商家失去兴趣。建议先背下标准话术再练。</p>';
+  }else{
+    document.getElementById('scoreDetail').innerHTML=makeScoreRows([
+      {label:'① 产品定义清晰',max:20,v:_scriptUsed===1?18:_scriptUsed===2?7:14},
+      {label:'② CPC模型讲透',max:30,v:_scriptUsed===1?26:_scriptUsed===2?5:18},
+      {label:'③ 商家利益前置',max:20,v:_scriptUsed===1?16:_scriptUsed===2?8:12},
+      {label:'④ 异议回应准确',max:20,v:_scriptUsed===1?15:_scriptUsed===2?10:13},
+      {label:'⑤ 语言通俗易懂',max:10,v:_scriptUsed===1?9:_scriptUsed===2?13:10}
+    ]);
+    document.getElementById('scoreFeedback').innerHTML=_scriptUsed===1?'<p><strong>亮点：</strong>CPC模型解释清晰，「不点击不收费」逻辑说到位了。</p><p style="margin-top:7px"><strong>改进：</strong>商家利益点可以更前置，先说「对您有什么好处」再说「怎么运作」。</p>':'<p><strong>主要问题：</strong>说了「完全免费」，这是错误表述，会让商家追问「你们靠什么赚钱」。CPC模型必须说清楚。</p>';
+  }
+  nav('s-score',dayLabel);
+}
+
+function makeScoreRows(rows){
+  return rows.map(function(r){
+    var c=r.v/r.max>=.8?'var(--green)':r.v/r.max>=.6?'var(--amber)':'var(--red)';
+    return '<div class="sc-row"><span>'+r.label+'（/'+r.max+'）</span><strong style="color:'+c+'">'+r.v+'</strong></div>';
+  }).join('');
+}
+
+function showD4List(){document.getElementById('d4list').style.display=document.getElementById('d4list').style.display==='none'?'block':'none'}
+
+function startD4(type){
+  _d4used=0;
+  var actual=type==='random'?D4_DATA['random'][Math.floor(Math.random()*8)]:type;
+  _d4type=actual;
+  var d=D4_DATA[actual];
+  document.getElementById('d4name').textContent='异议场景：'+d.name;
+  document.getElementById('d4status').textContent='商家完成产品介绍后，突然说：';
+  document.getElementById('d4reptxt').textContent=d.name.replace(/[「」⚠️]/g,'');
+  document.getElementById('d4hintTxt').textContent=d.hint;
+  nav('s-d4call','Day 4 · 异议处理');
+}
+
+function tryD4(q){
+  _d4used=q;
+  var d=D4_DATA[_d4type];
+  var rep=q===1?d.good:d.bad;
+  document.getElementById('d4reptxt').textContent=rep;
+  document.getElementById('d4status').textContent=q===1?'✅ 商家态度软化了…':'❌ 商家坚持异议…';
+  document.getElementById('d4hint').style.borderColor=q===1?'var(--green-b)':'var(--red-b)';
+}
+
+function goD4Score(){
+  var score=_d4used===1?88:_d4used===2?35:60;
+  var level=score>=85?'优秀 · 可进入Day5':score>=70?'良好 · 建议再练':' 未通过 · 需继续练习';
+  var lcolor=score>=85?'var(--green)':score>=70?'var(--amber)':'var(--red)';
+  document.getElementById('scoreDayTag').textContent='Day 4 · 异议处理复盘';
+  document.getElementById('scoreSceneTxt').textContent='异议场景：'+(_d4type||'随机');
+  document.getElementById('scoreBigNum').textContent=score;
+  document.getElementById('scoreLevelTxt').textContent=level;
+  document.getElementById('scoreLevelTxt').style.color=lcolor;
+  document.getElementById('scoreCertWrap').style.display='none';
+  document.getElementById('scoreDetail').innerHTML=makeScoreRows([
+    {label:'① 异议识别准确',max:25,v:_d4used===1?23:_d4used===2?8:15},
+    {label:'② 化解逻辑成立',max:30,v:_d4used===1?27:_d4used===2?5:18},
+    {label:'③ 无典型错误',max:25,v:_d4used===1?23:_d4used===2?10:16},
+    {label:'④ 推进下一步',max:20,v:_d4used===1?15:_d4used===2?12:11}
+  ]);
+  var fbHtml=_d4used===1?'<p><strong>亮点：</strong>化解逻辑准确，有效消除了商家顾虑。</p><p style="margin-top:7px"><strong>改进：</strong>化解后要更主动推进「接收材料」这一步。</p>':'<p><strong>主要问题：</strong>话术逻辑有误，没有触达商家真实顾虑。建议先理解商家心理再来练。</p>';
+  if(_d4type==='发材料'&&_d4used===2){fbHtml='<p><strong>典型陷阱：</strong>商家说「发材料」，你发完就结束通话了——这是最常见失误。发材料≠成功，必须同时约定回访时间！</p>'}
+  document.getElementById('scoreFeedback').innerHTML=fbHtml;
+  nav('s-score','Day 4 · 异议处理复盘');
+}
+
+function startD5(){
+  _d5scenario=D5_SCENARIOS[Math.floor(Math.random()*D5_SCENARIOS.length)];
+  var s=_d5scenario;
+  document.getElementById('callAvt').textContent=s.avt;
+  document.getElementById('callName').textContent=s.name+' · '+s.type;
+  document.getElementById('callStatus').textContent='📞 综合认证 · '+s.diff+'难度 · 全程无提示';
+  document.getElementById('callRep').style.display='none';
+  document.getElementById('callHint').innerHTML='<p style="color:var(--amber)">⚠️ 综合认证模式：完整走完五步法后点「结束复盘」</p>';
+  document.getElementById('callHint').style.display='block';
+  document.getElementById('callBack').onclick=function(){nav('s-day5','Day 5 · 综合认证')};
+  var opts=document.getElementById('callOpts');
+  opts.innerHTML='<button class="opt" onclick="tryD5(1)">优秀表现</button><button class="opt" onclick="tryD5(2)">一般表现</button>';
+  _curDay=5;
+  nav('s-call','综合认证 · '+s.name);
+}
+
+function tryD5(q){
+  _scriptUsed=q;
+  var s=_d5scenario;
+  var rep=q===1?'（通话顺利推进…商家表示愿意了解详情）好，那你帮我登记吧，怎么弄？':'（中途遇到异议：「'+s.anomaly+'」…化解不太顺利）你们这个……算了，我再考虑考虑吧。';
+  document.getElementById('callRep').style.display='block';
+  document.getElementById('callRepTxt').textContent=rep;
+  document.getElementById('callStatus').textContent=q===1?'✅ 通话顺利，商家同意了解':'⚠️ 遇到阻力，需要继续处理';
+}
+
+function retryDay(){goBack()}
+
+function goScoreScreen_D5(){
+  var s=_d5scenario;
+  var score=_scriptUsed===1?s.score:Math.round(s.score*0.6);
+  var passed=score>=85;
+  var level=score>=95?'优秀':score>=90?'良好':score>=85?'合格':'未通过';
+  var lcolor=passed?'var(--green)':'var(--red)';
+  document.getElementById('scoreDayTag').textContent='Day 5 · 综合认证报告';
+  document.getElementById('scoreSceneTxt').textContent=s.type+' · '+s.name+' · '+s.diff+'难度';
+  document.getElementById('scoreBigNum').textContent=score;
+  document.getElementById('scoreLevelTxt').textContent=(passed?'🏅 认证通过 · ':'❌ 认证未通过 · ')+level;
+  document.getElementById('scoreLevelTxt').style.color=lcolor;
+  document.getElementById('scoreDetail').innerHTML=makeScoreRows([
+    {label:'第一步 开场白',max:20,v:_scriptUsed===1?18:11},
+    {label:'第二步 需求挖掘',max:15,v:_scriptUsed===1?13:8},
+    {label:'第三步 产品介绍',max:25,v:_scriptUsed===1?22:13},
+    {label:'第四步 异议处理',max:25,v:_scriptUsed===1?21:10},
+    {label:'第五步 逼单',max:15,v:_scriptUsed===1?14:7}
+  ]);
+  var fb=passed?'<p><strong>全流程表现稳健，五步法衔接自然。</strong></p><p style="margin-top:7px">主要薄弱项：异议处理时「'+s.anomaly+'」场景略显生硬，建议实战中多加注意。</p>':'<p><strong>未通过原因：</strong>「'+s.anomaly+'」异议处理失分较多，整体流程被打断。</p><p style="margin-top:7px">建议回到 Day 4 针对「'+s.anomaly+'」场景专项练习，24小时后重新申请认证。</p>';
+  document.getElementById('scoreFeedback').innerHTML=fb;
+  if(passed){
+    document.getElementById('scoreCertWrap').style.display='block';
+    document.getElementById('certLevel').textContent=level;
+  }else{
+    document.getElementById('scoreCertWrap').style.display='none';
+  }
+  nav('s-score','综合认证报告');
+}
+
+var origGoScore=goScoreScreen;
+goScoreScreen=function(){if(_curDay===5){goScoreScreen_D5()}else{origGoScore()}};
+</script>
+</body>
+</html>
